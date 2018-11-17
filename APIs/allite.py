@@ -2,21 +2,37 @@ import requests
 from bs4 import BeautifulSoup
 from config.settings import BOOK_URLS
 
-# 要加入异常机制
-response = requests.get(BOOK_URLS.get('allite'))
-
-# 用beautifulsoup解析文档
-bsObj = BeautifulSoup(response.content, 'html.parser')
-
-# 提取分页信息，遍历爬虫
-
-def extract_books(bsObj):
+def extract_books(url):
     '''找到书籍标签，打印内容'''
+    response = requests.get(url)
+    bsObj = BeautifulSoup(response.content, 'html.parser')
     bookTags = bsObj.find(id='main-content').findAll('article')
+    books = []
     for book in bookTags:
         title = book.find('h2', {'class': 'entry-title'})
-        print(title.get_text())
-    # 提取书籍的各种信息
+        print(title.get_text(), title.a.attrs.get('href'))
+        books.append((title.get_text(), title.a.attrs.get('href')))
+    return books
 
-    # 调用SQLalchemy来存入
+def get_book_info(url):
+    """提取某个书籍的详情信息存入数据库"""
+    response = requests.get(url)
+    bsObj = BeautifulSoup(response.content, 'html.parser')
+    headerTag = bsObj.find('header', {'class': 'entry-header'})
+    title = headerTag.find('h1').get_text()
+    subtitleTag = headerTag.find('h4')
+    subtitle = subtitleTag.get_text() if subtitleTag else None
+    imgURL = headerTag.find('div', {'class': 'entry-body-thumbnail'}).find('img').attrs.get('src')
+    print(imgURL)
 
+def download(url):
+    """下载书籍返回存储路径"""
+    pass
+
+
+if __name__ == '__main__':
+
+    books = extract_books(BOOK_URLS.get('allite'))
+    for title, url in books:
+        print('开始解析：', title)
+        get_book_info(url)
