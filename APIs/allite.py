@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from config.settings import BOOK_URLS
 
 def extract_books(url):
-    '''找到书籍标签，打印内容'''
+    """找到书籍标签，打印内容"""
     response = requests.get(url)
     bsObj = BeautifulSoup(response.content, 'html.parser')
     bookTags = bsObj.find(id='main-content').findAll('article')
@@ -23,7 +23,20 @@ def get_book_info(url):
     subtitleTag = headerTag.find('h4')
     subtitle = subtitleTag.get_text() if subtitleTag else None
     imgURL = headerTag.find('div', {'class': 'entry-body-thumbnail'}).find('img').attrs.get('src')
-    print(imgURL)
+    bookDetail =headerTag.find('div', {'class': 'book-detail'})
+    author_tags = bookDetail.dl.find('dt', string='Author:').next_sibling.find_all('a')
+    authors = [a.text for a in author_tags]
+    isbn = bookDetail.dl.find('dt', string='ISBN-10:').next_sibling.text
+    year = bookDetail.dl.find('dt', string='Year:').next_sibling.text
+    pages = bookDetail.dl.find('dt', string='Pages:').next_sibling.text
+    language = bookDetail.dl.find('dt', string='Language:').next_sibling.text
+    size = bookDetail.dl.find('dt', string='File size:').next_sibling.text
+    fileFormat = bookDetail.dl.find('dt', string='File size:').next_sibling.text
+    categoryTags = bookDetail.dl.find('dt', string='Category:').next_sibling.find_all('a')
+    category = [c.text for c in categoryTags]
+    content = bsObj.find('div', {'class': 'entry-content'}).strings
+    content = ''.join(list(content)[3:])
+    link = bsObj.find('footer', {'class': 'entry-footer'}).a.get('href')
 
 def download(url):
     """下载书籍返回存储路径"""
