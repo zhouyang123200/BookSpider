@@ -1,6 +1,6 @@
-import requests
+import requests, os
 from bs4 import BeautifulSoup
-from config.settings import BOOK_URLS
+from config.settings import BOOK_URLS, DOWNLOAD_PATH
 
 def extract_books(url):
     """找到书籍标签，打印内容"""
@@ -38,9 +38,15 @@ def get_book_info(url):
     content = ''.join(list(content)[3:])
     link = bsObj.find('footer', {'class': 'entry-footer'}).a.get('href')
 
-def download(url):
+def download(link):
     """下载书籍返回存储路径"""
-    pass
+    bookName = link.split('/')[-1]
+    bookPath = os.path.join(DOWNLOAD_PATH, bookName)
+    with requests.get(link, stream=True) as bookRep:
+        with open(bookPath, 'wb') as f:
+            for chunk in bookRep.iter_content(chunk_size=1024):
+                if chunk:
+                    f.write(chunk)
 
 
 if __name__ == '__main__':
